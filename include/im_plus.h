@@ -981,6 +981,10 @@ namespace im
       imProcessPseudoColor(src_image.GetHandle(), dst_image.GetHandle()); }
     inline void FixBGR(const Image& src_image, Image& dst_image) {
       imProcessFixBGR(src_image.GetHandle(), dst_image.GetHandle()); }
+    inline void SelectHue(const Image& src_image, Image& dst_image, double hue_start, double hue_end) {
+      imProcessSelectHue(src_image.GetHandle(), dst_image.GetHandle(), hue_start, hue_end); }
+    inline void SelectHSI(const Image& src_image, Image& dst_image, double hue_start, double hue_end, double sat_start, double sat_end, double int_start, double int_end) {
+      imProcessSelectHSI(src_image.GetHandle(), dst_image.GetHandle(), hue_start, hue_end, sat_start, sat_end, int_start, int_end); }
     inline void ReplaceColor(const Image& src_image, Image& dst_image, double* src_color, double* dst_color) {
       imProcessReplaceColor(src_image.GetHandle(), dst_image.GetHandle(), src_color, dst_color); }
     inline void SetAlphaColor(const Image& src_image, Image& dst_image, double* src_color, double dst_alpha) {
@@ -1079,6 +1083,8 @@ namespace im
       return imProcessFlip(src_image.GetHandle(), dst_image.GetHandle()); }
     inline int Radial(const Image& src_image, Image& dst_image, double k1, int order) {
       return imProcessRadial(src_image.GetHandle(), dst_image.GetHandle(), k1, order); }
+    inline int LensDistort(const Image& src_image, Image& dst_image, double a, double b, double c, int order) {
+      return imProcessLensDistort(src_image.GetHandle(), dst_image.GetHandle(), a, b, c, order); }
     inline int Swirl(const Image& src_image, Image& dst_image, double k1, int order) {
       return imProcessSwirl(src_image.GetHandle(), dst_image.GetHandle(), k1, order); }
     inline int InterlaceSplit(const Image& src_image, Image& dst_image1, Image& dst_image2) {

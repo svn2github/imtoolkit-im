@@ -962,6 +962,17 @@ static int imluaProcessRadial (lua_State *L)
   return 1;
 }
 
+static int imluaProcessLensDistort(lua_State *L)
+{
+  imImage *src_image = imlua_checkimage(L, 1);
+  imImage *dst_image = imlua_checkimage(L, 2);
+
+  imlua_match(L, src_image, dst_image);
+
+  lua_pushboolean(L, imProcessLensDistort(src_image, dst_image, luaL_checknumber(L, 3), luaL_checknumber(L, 4), luaL_checknumber(L, 5), imlua_getorder(L, src_image, 6)));
+  return 1;
+}
+
 /*****************************************************************************\
  im.ProcessSwirl
 \*****************************************************************************/
@@ -2624,6 +2635,18 @@ static int imluaProcessSelectHue(lua_State *L)
   return 0;
 }
 
+static int imluaProcessSelectHSI(lua_State *L)
+{
+  imImage *src_image = imlua_checkimage(L, 1);
+  imImage *dst_image = imlua_checkimage(L, 2);
+
+  imlua_match(L, src_image, dst_image);
+  imlua_checkcolorspace(L, 1, src_image, IM_RGB);
+
+  imProcessSelectHSI(src_image, dst_image, luaL_checknumber(L, 3), luaL_checknumber(L, 4), luaL_checknumber(L, 5), luaL_checknumber(L, 6), luaL_checknumber(L, 7), luaL_checknumber(L, 8));
+  return 0;
+}
+
 /*****************************************************************************\
  im.ProcessReplaceColor
 \*****************************************************************************/
@@ -3735,6 +3758,7 @@ static const luaL_Reg improcess_lib[] = {
   {"ProcessMirror", imluaProcessMirror},
   {"ProcessFlip", imluaProcessFlip},
   {"ProcessRadial", imluaProcessRadial},
+  {"ProcessLensDistort", imluaProcessLensDistort},
   {"ProcessSwirl", imluaProcessSwirl},
   {"ProcessInterlaceSplit", imluaProcessInterlaceSplit},
 
@@ -3822,6 +3846,7 @@ static const luaL_Reg improcess_lib[] = {
   { "ProcessPseudoColor", imluaProcessPseudoColor },
   { "ProcessFixBGR", imluaProcessFixBGR },
   { "ProcessSelectHue", imluaProcessSelectHue },
+  { "ProcessSelectHSI", imluaProcessSelectHSI },
 
   {"ProcessBitwiseOp", imluaProcessBitwiseOp},
   {"ProcessBitwiseNot", imluaProcessBitwiseNot},

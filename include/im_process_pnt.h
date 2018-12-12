@@ -490,7 +490,6 @@ void imProcessPseudoColor(const imImage* src_image, imImage* dst_image);
  * \ingroup colorproc */
 void imProcessFixBGR(const imImage* src_image, imImage* dst_image);
 
-
 /** Uses a hue interval to isolate where color predominates.
 * Images must match. And must have color space RGB.
 *
@@ -498,6 +497,15 @@ void imProcessFixBGR(const imImage* src_image, imImage* dst_image);
 * \verbatim im.ProcessSelectHueNew(src_image: imImage, hue_start, hue_end: number) -> new_image: imImage [in Lua 5] \endverbatim
 * \ingroup colorproc */
 void imProcessSelectHue(const imImage* src_image, imImage* dst_image, double hue_start, double hue_end);
+
+/** Uses a hue, saturation, intensity intervals to isolate where color predominates.
+* Images must match. And must have color space RGB.
+*
+* \verbatim im.ProcessSelectHSI(src_image: imImage, dst_image: imImage, hue_start, hue_end, sat_start, sat_end, int_start, int_end: number) [in Lua 5] \endverbatim
+* \verbatim im.ProcessSelectHSINew(src_image: imImage, hue_start, hue_end, sat_start, sat_end, int_start, int_end: number) -> new_image: imImage [in Lua 5] \endverbatim
+* \ingroup colorproc */
+void imProcessSelectHSI(const imImage* src_image, imImage* dst_image, double hue_start, double hue_end, double sat_start, double sat_end, double int_start, double int_end);
+
 
 
 /** \defgroup logic Logical Arithmetic Operations 

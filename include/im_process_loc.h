@@ -173,6 +173,16 @@ int imProcessFlip(const imImage* src_image, imImage* dst_image);
  * \ingroup geom */
 int imProcessRadial(const imImage* src_image, imImage* dst_image, double k1, int order);
 
+/** Apply a lens distortion correction using the given interpolation order (see imProcessResize). \n
+  * a, b, and c are the lens parameters. \n
+  * Images must be of the same type and size.
+  * Returns zero if the counter aborted.
+  *
+  * \verbatim im.ProcessLensDistort(src_image: imImage, dst_image: imImage, a, b, c: number, order: number) -> counter: boolean [in Lua 5] \endverbatim
+  * \verbatim im.ProcessLensDistortNew(image: imImage, a, b, c: number[, order]: number) -> counter: boolean, new_image: imImage [in Lua 5] \endverbatim
+  * \ingroup geom */
+int imProcessLensDistort(const imImage* src_image, imImage* dst_image, double a, double b, double c, int order);
+
 /** Apply a swirl distortion using the given interpolation order (see imProcessResize). \n
  * Images must be of the same type and size.
  * Returns zero if the counter aborted.

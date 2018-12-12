@@ -674,3 +674,75 @@ void imProcessSelectHue(const imImage* src_image, imImage* dst_image, double hue
     break;
   }
 }
+
+template <class T>
+static void DoSelectHSI(T** src_data, T** dst_data, int count, double hue_start, double hue_end, double sat_start, double sat_end, double int_start, double int_end)
+{
+  T *dst_red = dst_data[0],
+    *dst_green = dst_data[1],
+    *dst_blue = dst_data[2];
+  T *src_red = src_data[0],
+    *src_green = src_data[1],
+    *src_blue = src_data[2];
+  T min, max;
+  double r, g, b;
+  double H, S, I;
+
+  imMinMaxType(src_data[0], count * 3, min, max);
+
+  hue_start = iColorNormHue(hue_start);
+  hue_end = iColorNormHue(hue_end);
+  int interval360 = 0;
+  if (hue_start > hue_end)
+    interval360 = 1;
+
+#ifdef _OPENMP
+#pragma omp parallel for if (IM_OMP_MINCOUNT(count))
+#endif
+  for (int i = 0; i < count; i++)
+  {
+    r = (double)(src_red[i] - min) / (double)(max - min);  // now 0 <= norm <= 1
+    g = (double)(src_green[i] - min) / (double)(max - min);  // now 0 <= norm <= 1
+    b = (double)(src_blue[i] - min) / (double)(max - min);  // now 0 <= norm <= 1
+
+    imColorRGB2HSI(r, g, b, &H, &S, &I);
+
+    if (((!interval360 && (H < hue_start || H > hue_end)) || (interval360 && (H < hue_start && H > hue_end))) ||
+        (S < sat_start || S > sat_end) ||
+        (I < int_start || I > int_end))
+    {
+      dst_red[i] = (T)min;
+      dst_green[i] = (T)min;
+      dst_blue[i] = (T)min;
+    }
+    else
+    {
+      dst_red[i] = src_red[i];
+      dst_green[i] = src_green[i];
+      dst_blue[i] = src_blue[i];
+    }
+  }
+}
+
+void imProcessSelectHSI(const imImage* src_image, imImage* dst_image, double hue_start, double hue_end, double sat_start, double sat_end, double int_start, double int_end)
+{
+  switch (src_image->data_type)
+  {
+  case IM_BYTE:
+    DoSelectHSI((imbyte**)src_image->data, (imbyte**)dst_image->data, src_image->count, hue_start, hue_end, sat_start, sat_end, int_start, int_end);
+    break;
+  case IM_SHORT:
+    DoSelectHSI((short**)src_image->data, (short**)dst_image->data, src_image->count, hue_start, hue_end, sat_start, sat_end, int_start, int_end);
+    break;
+  case IM_USHORT:
+    DoSelectHSI((imushort**)src_image->data, (imushort**)dst_image->data, src_image->count, hue_start, hue_end, sat_start, sat_end, int_start, int_end);
+    break;
+  case IM_FLOAT:
+    DoSelectHSI((float**)src_image->data, (float**)dst_image->data, src_image->count, hue_start, hue_end, sat_start, sat_end, int_start, int_end);
+    break;
+  case IM_DOUBLE:
+    DoSelectHSI((double**)src_image->data, (double**)dst_image->data, src_image->count, hue_start, hue_end, sat_start, sat_end, int_start, int_end);
+    break;
+  }
+}
+

@@ -32,6 +32,7 @@ EXPORTS
   imProcessOtsuThreshold
   imProcessPercentThreshold
   imProcessRadial
+  imProcessLensDistort
   imProcessRangeContrastThreshold
   imProcessRangeConvolve
   imProcessRankClosestConvolve
@@ -132,6 +133,7 @@ EXPORTS
   imProcessPseudoColor
   imProcessFixBGR
   imProcessSelectHue
+  imProcessSelectHSI
   imGaussianStdDev2KernelSize
   imProcessBitwiseNot
   imProcessDistanceTransform

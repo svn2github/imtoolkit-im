@@ -1840,12 +1840,12 @@ static IAMVideoProcAmp* vc_InitVideoProcAmp(IBaseFilter* capture_filter, IAMVide
   return *video_prop;
 }
 
-static int vc_SetVideoProcAmpProperty(IBaseFilter* capture_filter, IAMVideoProcAmp* *video_prop, long property, double percent)
+static int vc_SetVideoProcAmpProperty(IBaseFilter* capture_filter, IAMVideoProcAmp* *video_prop, long p, double percent)
 {
   IAMVideoProcAmp *pProp = vc_InitVideoProcAmp(capture_filter, video_prop);
   if (!pProp) return 0;
   HRESULT hr;
-  VideoProcAmpProperty prop = (VideoProcAmpProperty)property;
+  VideoProcAmpProperty prop = (VideoProcAmpProperty)p;
   long Min, Max, Step, Default, Flags;
   hr = pProp->GetRange(prop, &Min, &Max, &Step, &Default, &Flags);
   hr = pProp->Set(prop, vc_Percent2Value(Min, Max, Step, percent), VideoProcAmp_Flags_Manual);
@@ -1853,13 +1853,13 @@ static int vc_SetVideoProcAmpProperty(IBaseFilter* capture_filter, IAMVideoProcA
   return 1;
 }
 
-static int vc_GetVideoProcAmpProperty(IBaseFilter* capture_filter, IAMVideoProcAmp* *video_prop, long property, double *percent)
+static int vc_GetVideoProcAmpProperty(IBaseFilter* capture_filter, IAMVideoProcAmp* *video_prop, long p, double *percent)
 {
   IAMVideoProcAmp *pProp = vc_InitVideoProcAmp(capture_filter, video_prop);
   if (!pProp) return 0;
 
   HRESULT hr;
-  VideoProcAmpProperty prop = (VideoProcAmpProperty)property;
+  VideoProcAmpProperty prop = (VideoProcAmpProperty)p;
   long Min, Max, Step, Default, Flags, Val;
   hr = pProp->GetRange(prop, &Min, &Max, &Step, &Default, &Flags);
   hr = pProp->Get(prop, &Val, &Flags);
@@ -1869,13 +1869,13 @@ static int vc_GetVideoProcAmpProperty(IBaseFilter* capture_filter, IAMVideoProcA
   return 1;
 }
 
-static int vc_ResetVideoProcAmpProperty(IBaseFilter* capture_filter, IAMVideoProcAmp* *video_prop, long property, int fauto)
+static int vc_ResetVideoProcAmpProperty(IBaseFilter* capture_filter, IAMVideoProcAmp* *video_prop, long p, int fauto)
 {
   IAMVideoProcAmp *pProp = vc_InitVideoProcAmp(capture_filter, video_prop);
   if (!pProp) return 0;
 
   HRESULT hr;
-  VideoProcAmpProperty prop = (VideoProcAmpProperty)property;
+  VideoProcAmpProperty prop = (VideoProcAmpProperty)p;
   long Min, Max, Step, Default, Flags;
   hr = pProp->GetRange(prop, &Min, &Max, &Step, &Default, &Flags);
 
@@ -1900,13 +1900,13 @@ static IAMCameraControl* vc_InitCameraControl(IBaseFilter* capture_filter, IAMCa
   return *camera_prop;
 }
 
-static int vc_SetCameraControlProperty(IBaseFilter* capture_filter, IAMCameraControl* *camera_prop, long property, double percent)
+static int vc_SetCameraControlProperty(IBaseFilter* capture_filter, IAMCameraControl* *camera_prop, long p, double percent)
 {
   IAMCameraControl *pProp = vc_InitCameraControl(capture_filter, camera_prop);
   if (!pProp) return 0;
 
   HRESULT hr;
-  CameraControlProperty prop = (CameraControlProperty)property;
+  CameraControlProperty prop = (CameraControlProperty)p;
   long Min, Max, Step, Default, Flags;
   hr = pProp->GetRange(prop, &Min, &Max, &Step, &Default, &Flags);
   hr = pProp->Set(prop, vc_Percent2Value(Min, Max, Step, percent), CameraControl_Flags_Manual);
@@ -1915,13 +1915,13 @@ static int vc_SetCameraControlProperty(IBaseFilter* capture_filter, IAMCameraCon
   return 1;
 }
 
-static int vc_GetCameraControlProperty(IBaseFilter* capture_filter, IAMCameraControl* *camera_prop, long property, double *percent)
+static int vc_GetCameraControlProperty(IBaseFilter* capture_filter, IAMCameraControl* *camera_prop, long p, double *percent)
 {
   IAMCameraControl *pProp = vc_InitCameraControl(capture_filter, camera_prop);
   if (!pProp) return 0;
 
   HRESULT hr;
-  CameraControlProperty prop = (CameraControlProperty)property;
+  CameraControlProperty prop = (CameraControlProperty)p;
   long Min, Max, Step, Default, Flags, Val;
   hr = pProp->GetRange(prop, &Min, &Max, &Step, &Default, &Flags);
   hr = pProp->Get(prop, &Val, &Flags);
@@ -1931,13 +1931,13 @@ static int vc_GetCameraControlProperty(IBaseFilter* capture_filter, IAMCameraCon
   return 1;
 }
 
-static int vc_ResetCameraControlProperty(IBaseFilter* capture_filter, IAMCameraControl* *camera_prop, long property, int fauto)
+static int vc_ResetCameraControlProperty(IBaseFilter* capture_filter, IAMCameraControl* *camera_prop, long p, int fauto)
 {
   IAMCameraControl *pProp = vc_InitCameraControl(capture_filter, camera_prop);
   if (!pProp) return 0;
 
   HRESULT hr;
-  CameraControlProperty prop = (CameraControlProperty)property;
+  CameraControlProperty prop = (CameraControlProperty)p;
   long Min, Max, Step, Default, Flags;
   hr = pProp->GetRange(prop, &Min, &Max, &Step, &Default, &Flags);
 
@@ -1962,7 +1962,7 @@ static IAMVideoControl* vc_InitVideoControl(IBaseFilter* capture_filter, IAMVide
   return *video_prop;
 }
 
-static int vc_SetVideoControlProperty(IBaseFilter* capture_filter, IAMVideoControl* *video_prop, long property, double percent)
+static int vc_SetVideoControlProperty(IBaseFilter* capture_filter, IAMVideoControl* *video_prop, long prop, double percent)
 {
   IAMVideoControl *pProp = vc_InitVideoControl(capture_filter, video_prop);
   if (!pProp) return 0;
@@ -1972,9 +1972,9 @@ static int vc_SetVideoControlProperty(IBaseFilter* capture_filter, IAMVideoContr
   long Mode;
   hr = pProp->GetMode(pOutPin, &Mode);
   if (percent)
-    Mode = Mode | property;
+    Mode = Mode | prop;
   else
-    Mode = Mode & ~property;
+    Mode = Mode & ~prop;
   hr = pProp->SetMode(pOutPin, Mode);
   pOutPin->Release();
 
@@ -1982,7 +1982,7 @@ static int vc_SetVideoControlProperty(IBaseFilter* capture_filter, IAMVideoContr
   return 1;
 }
 
-static int vc_GetVideoControlProperty(IBaseFilter* capture_filter, IAMVideoControl* *video_prop, long property, double *percent)
+static int vc_GetVideoControlProperty(IBaseFilter* capture_filter, IAMVideoControl* *video_prop, long prop, double *percent)
 {
   IAMVideoControl *pProp = vc_InitVideoControl(capture_filter, video_prop);
   if (!pProp) return 0;
@@ -1994,14 +1994,14 @@ static int vc_GetVideoControlProperty(IBaseFilter* capture_filter, IAMVideoContr
   pOutPin->Release();
 
   if (FAILED(hr)) return 0;
-  if (Mode & property)
+  if (Mode & prop)
     *percent = 100.;
   else
     *percent = 0.;
   return 1;
 }
 
-static int vc_ResetVideoControlProperty(IBaseFilter* capture_filter, IAMVideoControl* *video_prop, long property, int fauto)
+static int vc_ResetVideoControlProperty(IBaseFilter* capture_filter, IAMVideoControl* *video_prop, long prop, int fauto)
 {
   IAMVideoControl *pProp = vc_InitVideoControl(capture_filter, video_prop);
   if (!pProp) return 0;
@@ -2010,10 +2010,10 @@ static int vc_ResetVideoControlProperty(IBaseFilter* capture_filter, IAMVideoCon
   long Mode;
   IPin *pOutPin = vc_GetPin(capture_filter, PINDIR_OUTPUT);
   hr = pProp->GetMode(pOutPin, &Mode);
-  if (Mode & property)
-    Mode = Mode & ~property;
+  if (Mode & prop)
+    Mode = Mode & ~prop;
   else
-    Mode = Mode | property;
+    Mode = Mode | prop;
   hr = pProp->SetMode(pOutPin, Mode);
   pOutPin->Release();
 
@@ -2141,14 +2141,14 @@ int imVideoCaptureSetAttribute(imVideoCapture* vc, const char* attrib, double pe
   assert(vc);
   assert(vc->device != -1);
 
-  long property = vc_Attrib2Property(attrib);
-  if (property == -1) return 0;
-  if (property < VC_CAMERASHIFT)
-    return vc_SetVideoProcAmpProperty(vc->capture_filter, &vc->video_prop, property, percent);
-  else if (property < VC_VIDEOSHIFT)
-    return vc_SetCameraControlProperty(vc->capture_filter, &vc->camera_prop, property-VC_CAMERASHIFT, percent);
-  else if (property < VC_ANALOGSHIFT)
-    return vc_SetVideoControlProperty(vc->capture_filter, &vc->videoctrl_prop, property-VC_VIDEOSHIFT, percent);
+  long prop = vc_Attrib2Property(attrib);
+  if (prop == -1) return 0;
+  if (prop < VC_CAMERASHIFT)
+    return vc_SetVideoProcAmpProperty(vc->capture_filter, &vc->video_prop, prop, percent);
+  else if (prop < VC_VIDEOSHIFT)
+    return vc_SetCameraControlProperty(vc->capture_filter, &vc->camera_prop, prop-VC_CAMERASHIFT, percent);
+  else if (prop < VC_ANALOGSHIFT)
+    return vc_SetVideoControlProperty(vc->capture_filter, &vc->videoctrl_prop, prop-VC_VIDEOSHIFT, percent);
   else
     return vc_SetAnalogFormat(vc->capture_filter, percent);
 }
@@ -2158,14 +2158,14 @@ int imVideoCaptureGetAttribute(imVideoCapture* vc, const char* attrib, double *p
   assert(vc);
   assert(vc->device != -1);
 
-  long property = vc_Attrib2Property(attrib);
-  if (property == -1) return 0;
-  if (property < VC_CAMERASHIFT)
-    return vc_GetVideoProcAmpProperty(vc->capture_filter, &vc->video_prop, property, percent);
-  else if (property < VC_VIDEOSHIFT)
-    return vc_GetCameraControlProperty(vc->capture_filter, &vc->camera_prop, property-VC_CAMERASHIFT, percent);
-  else if (property < VC_ANALOGSHIFT)
-    return vc_GetVideoControlProperty(vc->capture_filter, &vc->videoctrl_prop, property-VC_VIDEOSHIFT, percent);
+  long prop = vc_Attrib2Property(attrib);
+  if (prop == -1) return 0;
+  if (prop < VC_CAMERASHIFT)
+    return vc_GetVideoProcAmpProperty(vc->capture_filter, &vc->video_prop, prop, percent);
+  else if (prop < VC_VIDEOSHIFT)
+    return vc_GetCameraControlProperty(vc->capture_filter, &vc->camera_prop, prop-VC_CAMERASHIFT, percent);
+  else if (prop < VC_ANALOGSHIFT)
+    return vc_GetVideoControlProperty(vc->capture_filter, &vc->videoctrl_prop, prop-VC_VIDEOSHIFT, percent);
   else
     return vc_GetAnalogFormat(vc->capture_filter, percent);
 }
@@ -2175,14 +2175,14 @@ int imVideoCaptureResetAttribute(imVideoCapture* vc, const char* attrib, int fau
   assert(vc);
   assert(vc->device != -1);
 
-  long property = vc_Attrib2Property(attrib);
-  if (property == -1) return 0;
-  if (property < VC_CAMERASHIFT)
-    return vc_ResetVideoProcAmpProperty(vc->capture_filter, &vc->video_prop, property, fauto);
-  else if (property < VC_VIDEOSHIFT)
-    return vc_ResetCameraControlProperty(vc->capture_filter, &vc->camera_prop, property-VC_CAMERASHIFT, fauto);
-  else if (property < VC_ANALOGSHIFT)
-    return vc_ResetVideoControlProperty(vc->capture_filter, &vc->videoctrl_prop, property-VC_VIDEOSHIFT, fauto);
+  long prop = vc_Attrib2Property(attrib);
+  if (prop == -1) return 0;
+  if (prop < VC_CAMERASHIFT)
+    return vc_ResetVideoProcAmpProperty(vc->capture_filter, &vc->video_prop, prop, fauto);
+  else if (prop < VC_VIDEOSHIFT)
+    return vc_ResetCameraControlProperty(vc->capture_filter, &vc->camera_prop, prop-VC_CAMERASHIFT, fauto);
+  else if (prop < VC_ANALOGSHIFT)
+    return vc_ResetVideoControlProperty(vc->capture_filter, &vc->videoctrl_prop, prop-VC_VIDEOSHIFT, fauto);
   return 0;
 }
 
@@ -2262,6 +2262,3 @@ const char** imVideoCaptureGetAttributeList(imVideoCapture* vc, int *num_attrib)
 
   return (const char**)attrib_list;
 }
-
-//VIDEOINFOHEADER
-// AvgTimePerFrame

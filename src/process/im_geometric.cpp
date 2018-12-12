@@ -16,25 +16,25 @@
 #include <memory.h>
 
 
-static inline void imRect2Polar(double x, double y, double *radius, double *theta)
+static inline void imRect2Polar(double xr, double yr, double *radius, double *theta)
 {
-  *radius = sqrt(x*x + y*y);
-  *theta = atan2(y, x);
+  *radius = sqrt(xr*xr + yr*yr);
+  *theta = atan2(yr, xr);
 }
 
-static inline void imPolar2Rect(double radius, double theta, double *x, double *y)
+static inline void imPolar2Rect(double radius, double theta, double *xr, double *yr)
 {
-  *x = radius * cos(theta);
-  *y = radius * sin(theta);
+  *xr = radius * cos(theta);
+  *yr = radius * sin(theta);
 }
 
 static inline void swirl_invtransf(int x, int y, double *xl, double *yl, double k, double xc, double yc)
 {
   double radius, theta;
-  x -= (int)xc;
-  y -= (int)yc;
+  double xr = x + 0.5 - xc;
+  double yr = y + 0.5 - yc;
 
-  imRect2Polar((double)x, (double)y, &radius, &theta);
+  imRect2Polar(xr, yr, &radius, &theta);
 
   theta += k * radius;
 
@@ -92,14 +92,96 @@ static int Swirl(int width, int height, DT *src_map, DT *dst_map,
   return processing;
 }
 
+static inline void lensdistort_invtransf(int x, int y, double *xl, double *yl, double a, double b, double c, double d, double off_x, double off_y, double xc, double yc)
+{
+  double aux;
+  double xr = (x + 0.5) - xc;
+  double yr = (y + 0.5) - yc;
+
+  double r = sqrt(xr*xr + yr*yr);
+  aux = ((a * r + b)*r + c)*r + d;
+
+  *xl = xr*aux;
+  *yl = yr*aux;
+
+  *xl += xc;
+  *yl += yc;
+
+  *xl -= off_x;
+  *yl -= off_y;
+}
+
+template <class DT, class DTU>
+static int LensDistort(int src_width, int src_height, DT *src_map, DT *dst_map,
+                       double a, double b, double c, int dst_width, int dst_height, int counter, DTU Dummy, int order)
+{
+  double off_x = double(dst_width - src_width) / 2.0;
+  double off_y = double(dst_height - src_height) / 2.0;
+  double xc = double(dst_width / 2.0);
+  double yc = double(dst_height / 2.0);
+  // normalized by half of the smaller image dimension
+  double norm = min_op(dst_width, dst_height) / 2.0;
+
+  // Normalize the coefficient instead of each coordinate
+  a /= norm*norm*norm;
+  b /= norm*norm;
+  c /= norm;
+  double d = 1.0 - a - b - c;
+
+  IM_INT_PROCESSING;
+
+#ifdef _OPENMP
+#pragma omp parallel for if (IM_OMP_MINHEIGHT(dst_height))
+#endif
+  for (int y = 0; y < dst_height; y++)
+  {
+#ifdef _OPENMP
+#pragma omp flush (processing)
+#endif
+    IM_BEGIN_PROCESSING;
+
+    int line_offset = y*dst_width;
+
+    for (int x = 0; x < dst_width; x++)
+    {
+      double xl, yl;
+      lensdistort_invtransf(x, y, &xl, &yl, a, b, c, d, off_x, off_y, xc, yc);
+
+      // if inside the original image broad area
+      if (xl > 0.0 && yl > 0.0 && xl < src_width && yl < src_height)
+      {
+        if (order == 1)
+          dst_map[line_offset + x] = imBilinearInterpolation(src_width, src_height, src_map, xl, yl);
+        else if (order == 3)
+          dst_map[line_offset + x] = imBicubicInterpolation(src_width, src_height, src_map, xl, yl, Dummy);
+        else
+          dst_map[line_offset + x] = imZeroOrderInterpolation(src_width, src_height, src_map, xl, yl);
+      }
+    }
+
+    IM_COUNT_PROCESSING;
+#ifdef _OPENMP
+#pragma omp flush (processing)
+#endif
+    IM_END_PROCESSING;
+  }
+
+  return processing;
+}
+
 static inline void radial_invtransf(int x, int y, double *xl, double *yl, double k1, double xc, double yc)
 {
   double aux;
-  x -= (int)xc;
-  y -= (int)yc;
-  aux = 1.0 + k1*(x*x + y*y);
-  *xl = x*aux + xc;
-  *yl = y*aux + yc;
+  double xr = x + 0.5 - xc;
+  double yr = y + 0.5 - yc;
+
+  aux = 1.0 + k1*(xr*xr + yr*yr);
+
+  *xl = xr*aux;
+  *yl = yr*aux;
+
+  *xl += xc;
+  *yl += yc;
 }
 
 template <class DT, class DTU> 
@@ -110,6 +192,7 @@ static int Radial(int width, int height, DT *src_map, DT *dst_map,
   double yc = double(height/2.0);
   int diag = (int)sqrt(double(width*width + height*height));
 
+  // Normalize the coefficient instead of each coordinate
   k1 /= (diag * diag);
          
   IM_INT_PROCESSING;
@@ -162,8 +245,8 @@ static int Radial(int width, int height, DT *src_map, DT *dst_map,
 
 inline void rotate_invtransf(int x, int y, double *xl, double *yl, double cos0, double sin0, double dcx, double dcy, double scx, double scy)
 {
-  double xr = x+0.5 - dcx;
-  double yr = y+0.5 - dcy;
+  double xr = x + 0.5 - dcx;
+  double yr = y + 0.5 - dcy;
   *xl = double(xr * cos0 - yr * sin0 + scx);
   *yl = double(xr * sin0 + yr * cos0 + scy);
 }
@@ -641,6 +724,53 @@ int imProcessRotate180(const imImage* src_image, imImage* dst_image)
   return ret;
 }
 
+int imProcessLensDistort(const imImage* src_image, imImage* dst_image, double a, double b, double c, int order)
+{
+  int ret = 0;
+
+  int counter = imProcessCounterBegin("LensDistort");
+  int src_depth = src_image->has_alpha && dst_image->has_alpha ? src_image->depth + 1 : src_image->depth;
+  imCounterTotal(counter, src_depth*dst_image->height, "Processing...");  /* size of the target image */
+
+  for (int i = 0; i < src_depth; i++)
+  {
+    switch (src_image->data_type)
+    {
+    case IM_BYTE:
+      ret = LensDistort(src_image->width, src_image->height, (imbyte*)src_image->data[i], (imbyte*)dst_image->data[i], a, b, c, dst_image->width, dst_image->height, counter, double(0), order);
+      break;
+    case IM_SHORT:
+      ret = LensDistort(src_image->width, src_image->height, (short*)src_image->data[i], (short*)dst_image->data[i], a, b, c, dst_image->width, dst_image->height, counter, double(0), order);
+      break;
+    case IM_USHORT:
+      ret = LensDistort(src_image->width, src_image->height, (imushort*)src_image->data[i], (imushort*)dst_image->data[i], a, b, c, dst_image->width, dst_image->height, counter, double(0), order);
+      break;
+    case IM_INT:
+      ret = LensDistort(src_image->width, src_image->height, (int*)src_image->data[i], (int*)dst_image->data[i], a, b, c, dst_image->width, dst_image->height, counter, double(0), order);
+      break;
+    case IM_FLOAT:
+      ret = LensDistort(src_image->width, src_image->height, (float*)src_image->data[i], (float*)dst_image->data[i], a, b, c, dst_image->width, dst_image->height, counter, double(0), order);
+      break;
+    case IM_CFLOAT:
+      ret = LensDistort(src_image->width, src_image->height, (imcfloat*)src_image->data[i], (imcfloat*)dst_image->data[i], a, b, c, dst_image->width, dst_image->height, counter, imcfloat(0, 0), order);
+      break;
+    case IM_DOUBLE:
+      ret = LensDistort(src_image->width, src_image->height, (double*)src_image->data[i], (double*)dst_image->data[i], a, b, c, dst_image->width, dst_image->height, counter, double(0), order);
+      break;
+    case IM_CDOUBLE:
+      ret = LensDistort(src_image->width, src_image->height, (imcdouble*)src_image->data[i], (imcdouble*)dst_image->data[i], a, b, c, dst_image->width, dst_image->height, counter, imcdouble(0, 0), order);
+      break;
+    }
+
+    if (!ret)
+      break;
+  }
+
+  imProcessCounterEnd(counter);
+
+  return ret;
+}
+
 int imProcessRadial(const imImage* src_image, imImage* dst_image, double k1, int order)
 {
   int ret = 0;
@@ -742,8 +872,8 @@ int imProcessSwirl(const imImage* src_image, imImage* dst_image, double k, int o
 
 static void rotate_transf(double cx, double cy, int x, int y, double *xl, double *yl, double cos0, double sin0)
 {
-  double xr = x+0.5 - cx;
-  double yr = y+0.5 - cy;
+  double xr = x + 0.5 - cx;
+  double yr = y + 0.5 - cy;
   *xl = double( xr*cos0 + yr*sin0);
   *yl = double(-xr*sin0 + yr*cos0);
 }
