@@ -67,6 +67,12 @@ endif
 ifneq ($(findstring dll14, $(TEC_UNAME)), )
   INCLUDES += $(WINSDK)/include
 endif
+ifneq ($(findstring vc15, $(TEC_UNAME)), )
+  INCLUDES += $(WINSDK)/include
+endif
+ifneq ($(findstring dll15, $(TEC_UNAME)), )
+  INCLUDES += $(WINSDK)/include
+endif
 
 ifneq ($(findstring Win, $(TEC_SYSNAME)), )
   INCLUDES += $(DXSDK)/include
