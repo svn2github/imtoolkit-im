@@ -13,7 +13,7 @@ wb_usr = {
 
 wb_usr.messages = {
   en = {
-    bar_title = "IM - Version 3.12",
+    bar_title = "IM - Version 3.13",
     title = "IM - An Imaging Tool",
   }
 } 
